@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>QR для customs-фото</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;margin:0;padding:24px;background:#fafafa;color:#111}
+    .card{max-width:760px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08);padding:24px}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    input[type=text]{flex:1;padding:12px;border:1px solid #ddd;border-radius:12px}
+    button{padding:12px 16px;border:0;border-radius:12px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+    #qrcode{margin-top:16px}
+    .hint{color:#666}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>QR-код для прямой ссылки на фото</h1>
+    <p>После публикации на GitHub Pages введи ПРЯМОЙ адрес файла <code>customs-decl.jpg</code>, например:<br>
+    <code>https://USERNAME.github.io/customs-photo/customs-decl.jpg</code></p>
+    <div class="row">
+      <input id="url" type="text" placeholder="Вставь конечный URL на customs-decl.jpg">
+      <button id="make">Сгенерировать</button>
+      <button id="save" disabled>Скачать PNG</button>
+    </div>
+    <div id="qrcode"></div>
+    <p class="hint">Можно открыть эту страницу как <code>qr.html?u=ВАШ_URL</code>, и QR построится автоматически.</p>
+  </div>
+<script>
+const input = document.getElementById('url');
+const qdiv = document.getElementById('qrcode');
+const saveBtn = document.getElementById('save');
+
+function build(u){
+  if(!/^https?:\/\//i.test(u)){ alert('Укажи полный URL, начинающийся с http(s)://'); return; }
+  qdiv.innerHTML = '';
+  const img = new Image();
+  img.width = 256; img.height = 256;
+  img.crossOrigin = 'anonymous';
+  img.onload = ()=>{
+    const c = document.createElement('canvas');
+    c.width = 256; c.height = 256;
+    const ctx = c.getContext('2d');
+    ctx.drawImage(img,0,0);
+    qdiv.appendChild(c);
+    saveBtn.onclick = ()=>{
+      const a = document.createElement('a');
+      a.href = c.toDataURL('image/png');
+      a.download = 'qr-customs.png';
+      a.click();
+    };
+    saveBtn.disabled = false;
+  };
+  img.src = 'https://chart.googleapis.com/chart?cht=qr&chs=256x256&chl=' + encodeURIComponent(u);
+}
+
+document.getElementById('make').onclick = ()=> build(input.value.trim());
+
+const params = new URLSearchParams(location.search);
+if(params.has('u')){ input.value = params.get('u'); build(input.value); }
+</script>
+</body>
+</html>
